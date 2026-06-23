@@ -4,7 +4,7 @@
 
 import { useState, useRef, useEffect } from "react";
 import { useParams } from "next/navigation";
-import { getBrand } from "../../../lib/brands";
+import { getBrand, listBrands } from "../../../lib/brands";
 
 export default function DemoPage() {
   const params = useParams();
@@ -39,6 +39,9 @@ export default function DemoPage() {
       <div style={{ padding: 60, fontFamily: "sans-serif", textAlign: "center" }}>
         <h1>Demo not found</h1>
         <p>No brand configured for “{slug}”.</p>
+        <p style={{marginTop:20,fontSize:13,color:"#888"}}>
+          slug: [{slug}] · known: {listBrands().join(", ")}
+        </p>
       </div>
     );
   }
