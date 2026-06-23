@@ -1,6 +1,7 @@
 "use client";
 // app/demo/[brand]/page.js
 // Themed demo storefront + Nexus AI widget. Talks ONLY to /api/chat (key stays server-side).
+// Logs each conversation to /api/log (fire-and-forget) for the analytics page.
 
 import { useState, useRef, useEffect } from "react";
 import { useParams } from "next/navigation";
@@ -17,6 +18,11 @@ export default function DemoPage() {
   const [typing, setTyping] = useState(false);
   const [showChips, setShowChips] = useState(true);
   const bodyRef = useRef(null);
+  const sessionIdRef = useRef(
+    typeof crypto !== "undefined" && crypto.randomUUID
+      ? crypto.randomUUID()
+      : "s_" + Date.now() + "_" + Math.random().toString(36).slice(2)
+  );
 
   useEffect(() => {
     if (bodyRef.current) bodyRef.current.scrollTop = bodyRef.current.scrollHeight;
@@ -68,10 +74,24 @@ export default function DemoPage() {
       });
       const data = await res.json();
       setTyping(false);
+      const reply = data.reply || brand.fallback;
+      const escalated = !!data.escalate;
       setMessages((m) => [
         ...m,
-        { role: "assistant", content: data.reply || brand.fallback, escalate: !!data.escalate },
+        { role: "assistant", content: reply, escalate: escalated },
       ]);
+
+      // fire-and-forget logging — never blocks or breaks the chat
+      fetch("/api/log", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          sessionId: sessionIdRef.current,
+          brand: slug,
+          messages: [...next, { role: "assistant", content: reply }],
+          escalated,
+        }),
+      }).catch(() => {});
     } catch {
       setTyping(false);
       setMessages((m) => [...m, { role: "assistant", content: brand.fallback, escalate: true }]);
