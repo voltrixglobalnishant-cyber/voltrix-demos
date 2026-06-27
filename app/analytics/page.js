@@ -2,7 +2,7 @@
 // Your private dashboard. Open it at: yoursite.com/analytics?key=YOUR_SECRET
 // It shows: how many conversations per demo, hot-lead counts, and full transcripts.
 
-import { getDb } from "../../lib/firebase-admin";
+import { getDb } from "../lib/firebase-admin";
 
 export const dynamic = "force-dynamic"; // always fetch fresh data
 
